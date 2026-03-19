@@ -11,82 +11,106 @@ const EquipmentCard: React.FC<EquipmentCardProps> = ({ equipment, onUpdate }) =>
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [tempName, setTempName] = React.useState(equipment.name);
 
+  // Sincroniza o nome temporário quando o nome do equipamento muda externamente
+  React.useEffect(() => {
+    if (!isEditingName) {
+      setTempName(equipment.name);
+    }
+  }, [equipment.name, isEditingName]);
+
   const diff = (typeof equipment.endValue === 'number' && typeof equipment.startValue === 'number') 
     ? equipment.endValue - equipment.startValue 
     : 0;
 
   const isValid = diff >= 0;
 
-  const handleSaveName = () => {
+  const handleSaveName = (e: React.MouseEvent) => {
+    e.stopPropagation();
     onUpdate(equipment.id, 'name', tempName);
     setIsEditingName(false);
   };
 
-  const handleEditName = () => {
+  const handleEditName = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setTempName(equipment.name);
     setIsEditingName(true);
+    // Abre o card se estiver fechado para mostrar o campo de input focado
+    if (!equipment.isOpen) {
+      onUpdate(equipment.id, 'isOpen', true);
+    }
   };
 
   return (
     <div className={`bg-white rounded-2xl shadow-sm border transition-all duration-300 overflow-hidden ${equipment.isOpen ? 'ring-4 ring-blue-500 border-transparent shadow-xl' : 'border-slate-200 hover:border-blue-400'}`}>
       <div className="p-5">
-        <button 
-          onClick={() => onUpdate(equipment.id, 'isOpen', !equipment.isOpen)}
-          className="w-full text-left flex items-center gap-4"
-        >
-          <div className={`w-14 h-14 min-w-[56px] rounded-2xl flex items-center justify-center font-black text-xl shadow-inner ${equipment.isOpen ? 'bg-blue-600 text-white' : 'bg-slate-900 text-white'}`}>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => onUpdate(equipment.id, 'isOpen', !equipment.isOpen)}
+            className={`w-14 h-14 min-w-[56px] rounded-2xl flex items-center justify-center font-black text-xl shadow-inner transition-colors ${equipment.isOpen ? 'bg-blue-600 text-white' : 'bg-slate-900 text-white'}`}
+          >
             {equipment.id}
-          </div>
+          </button>
+          
           <div className="flex-1 overflow-hidden">
-            <h3 className="font-black text-3xl text-slate-900 uppercase tracking-tighter leading-none mb-1 truncate">
-              {equipment.name}
-            </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <h3 className="font-black text-2xl text-slate-900 uppercase tracking-tighter leading-none truncate">
+                {equipment.name}
+              </h3>
+              {!isEditingName ? (
+                <button 
+                  onClick={handleEditName}
+                  className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-colors"
+                >
+                  Editar
+                </button>
+              ) : (
+                <button 
+                  onClick={handleSaveName}
+                  className="px-3 py-1 bg-blue-600 text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-colors shadow-md"
+                >
+                  Salvar
+                </button>
+              )}
+            </div>
+            <button 
+              onClick={() => onUpdate(equipment.id, 'isOpen', !equipment.isOpen)}
+              className="flex items-center gap-2 w-full text-left"
+            >
               <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Produtividade:</span>
               <span className={`text-xl font-black ${isValid ? 'text-blue-600' : 'text-red-500'}`}>
                 {isValid ? diff : 'ERRO'}
               </span>
-            </div>
+            </button>
           </div>
-          <div className={`transform transition-transform duration-300 ${equipment.isOpen ? 'rotate-180 text-blue-600' : 'rotate-0 text-slate-300'}`}>
+
+          <button 
+            onClick={() => onUpdate(equipment.id, 'isOpen', !equipment.isOpen)}
+            className={`transform transition-transform duration-300 ${equipment.isOpen ? 'rotate-180 text-blue-600' : 'rotate-0 text-slate-300'}`}
+          >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
             </svg>
-          </div>
-        </button>
+          </button>
+        </div>
       </div>
 
       {equipment.isOpen && (
         <div className="px-5 pb-6 bg-slate-50 border-t border-slate-100 space-y-5 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="grid grid-cols-2 gap-4 pt-5">
-            <div className="col-span-2">
-              <label className="block text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tighter text-center">PATRIMÔNIO</label>
-              <div className="flex gap-2">
+            {isEditingName && (
+              <div className="col-span-2 animate-in zoom-in-95 duration-200">
+                <label className="block text-[11px] font-black text-blue-600 uppercase mb-2 tracking-tighter text-center">Editando Patrimônio</label>
                 <input
                   type="text"
-                  disabled={!isEditingName}
-                  value={isEditingName ? tempName : equipment.name}
+                  autoFocus
+                  value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  className={`flex-1 p-3 text-xl font-black text-center border-2 rounded-xl outline-none transition-all uppercase ${isEditingName ? 'border-blue-500 bg-white ring-2 ring-blue-100' : 'border-slate-200 bg-slate-100 text-slate-600 cursor-not-allowed'}`}
-                  placeholder="Patrimônio..."
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveName(e as any)}
+                  className="w-full p-3 text-xl font-black text-center border-2 border-blue-500 bg-white rounded-xl focus:ring-4 focus:ring-blue-100 outline-none transition-all uppercase"
+                  placeholder="Novo patrimônio..."
                 />
-                {!isEditingName ? (
-                  <button 
-                    onClick={handleEditName}
-                    className="px-4 bg-slate-800 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition-colors"
-                  >
-                    Editar
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleSaveName}
-                    className="px-4 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
-                  >
-                    Salvar
-                  </button>
-                )}
               </div>
-            </div>
+            )}
             <div>
               <label className="block text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tighter text-center">Nº Inicial</label>
               <input
