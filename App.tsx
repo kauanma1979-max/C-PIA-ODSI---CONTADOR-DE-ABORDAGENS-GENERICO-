@@ -140,8 +140,21 @@ const App: React.FC = () => {
   };
 
   const handleReset = () => {
-    if (confirm('Atenção: Todos os dados serão apagados definitivamente. Continuar?')) {
-      setPointData({ 'Ponto 1': createInitialEquipments(), 'Ponto 2': createInitialEquipments() });
+    if (confirm('Atenção: Os valores de início e fim serão zerados, mas os números de PATRIMÔNIO serão mantidos. Continuar?')) {
+      setPointData(prev => {
+        const resetPoint = (equipments: EquipmentData[]) => 
+          equipments.map(eq => ({
+            ...eq,
+            startValue: '',
+            endValue: '',
+            isOpen: false
+          }));
+        
+        return {
+          'Ponto 1': resetPoint(prev['Ponto 1']),
+          'Ponto 2': resetPoint(prev['Ponto 2'])
+        };
+      });
     }
   };
 
