@@ -8,11 +8,24 @@ interface EquipmentCardProps {
 }
 
 const EquipmentCard: React.FC<EquipmentCardProps> = ({ equipment, onUpdate }) => {
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [tempName, setTempName] = React.useState(equipment.name);
+
   const diff = (typeof equipment.endValue === 'number' && typeof equipment.startValue === 'number') 
     ? equipment.endValue - equipment.startValue 
     : 0;
 
   const isValid = diff >= 0;
+
+  const handleSaveName = () => {
+    onUpdate(equipment.id, 'name', tempName);
+    setIsEditingName(false);
+  };
+
+  const handleEditName = () => {
+    setTempName(equipment.name);
+    setIsEditingName(true);
+  };
 
   return (
     <div className={`bg-white rounded-2xl shadow-sm border transition-all duration-300 overflow-hidden ${equipment.isOpen ? 'ring-4 ring-blue-500 border-transparent shadow-xl' : 'border-slate-200 hover:border-blue-400'}`}>
@@ -25,7 +38,7 @@ const EquipmentCard: React.FC<EquipmentCardProps> = ({ equipment, onUpdate }) =>
             {equipment.id}
           </div>
           <div className="flex-1 overflow-hidden">
-            <h3 className="font-black text-3xl text-slate-900 uppercase tracking-tighter leading-none mb-1">
+            <h3 className="font-black text-3xl text-slate-900 uppercase tracking-tighter leading-none mb-1 truncate">
               {equipment.name}
             </h3>
             <div className="flex items-center gap-2">
@@ -47,14 +60,32 @@ const EquipmentCard: React.FC<EquipmentCardProps> = ({ equipment, onUpdate }) =>
         <div className="px-5 pb-6 bg-slate-50 border-t border-slate-100 space-y-5 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="grid grid-cols-2 gap-4 pt-5">
             <div className="col-span-2">
-              <label className="block text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tighter text-center">Nº de Série do Aparelho</label>
-              <input
-                type="text"
-                value={equipment.name}
-                onChange={(e) => onUpdate(equipment.id, 'name', e.target.value)}
-                className="w-full p-3 text-xl font-black text-center border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all uppercase"
-                placeholder="Digite o número de série..."
-              />
+              <label className="block text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tighter text-center">PATRIMÔNIO</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  disabled={!isEditingName}
+                  value={isEditingName ? tempName : equipment.name}
+                  onChange={(e) => setTempName(e.target.value)}
+                  className={`flex-1 p-3 text-xl font-black text-center border-2 rounded-xl outline-none transition-all uppercase ${isEditingName ? 'border-blue-500 bg-white ring-2 ring-blue-100' : 'border-slate-200 bg-slate-100 text-slate-600 cursor-not-allowed'}`}
+                  placeholder="Patrimônio..."
+                />
+                {!isEditingName ? (
+                  <button 
+                    onClick={handleEditName}
+                    className="px-4 bg-slate-800 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition-colors"
+                  >
+                    Editar
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleSaveName}
+                    className="px-4 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                  >
+                    Salvar
+                  </button>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tighter text-center">Nº Inicial</label>

@@ -9,7 +9,7 @@ const createInitialEquipments = (): EquipmentData[] =>
     const id = i + 1;
     return {
       id,
-      name: `SÉRIE ${id.toString().padStart(2, '0')}`,
+      name: `PATR. ${id.toString().padStart(2, '0')}`,
       startValue: '',
       endValue: '',
       isOpen: false,
